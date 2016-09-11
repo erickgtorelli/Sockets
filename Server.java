@@ -34,7 +34,7 @@ public class Server
  
                 //Returning Message
                 String returnMessage;
-                     returnMessage = message + "\n";
+                     returnMessage = message + "Server \n";
                 
                 //Sending the response back to the client.
                 OutputStream os = socket.getOutputStream();

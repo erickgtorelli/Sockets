@@ -17,26 +17,26 @@ public class Client
         try
         {
             String host = "localhost";
-            int port = 25001;
+            int port_intermediary = 25002;
             InetAddress address = InetAddress.getByName(host);
-            socket = new Socket(address, port);
+            socket = new Socket(address, port_intermediary);
  
             //Send the message to the server
             OutputStream os = socket.getOutputStream();
             OutputStreamWriter osw = new OutputStreamWriter(os);
             BufferedWriter bw = new BufferedWriter(osw);
  
-            String sendMessage = "Hello " + "\n";
+            String sendMessage = "Client " + "\n";
             bw.write(sendMessage);
             bw.flush();
-            System.out.println("Message sent to the server : "+sendMessage);
+            System.out.println("Message sent to the Intermediary : "+sendMessage);
  
             //Get the return message from the server
             InputStream is = socket.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
             String message = br.readLine();
-            System.out.println("Message received from the server : " +message);
+            System.out.println("Message received from the Intermediary : " + message);
         }
         catch (Exception exception)
         {
