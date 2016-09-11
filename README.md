@@ -3,7 +3,8 @@ Network Client-Intermediary-Server with Selective Repeat
 
 # Run program commands 
 
- ```Command line
+ ```
+ 	Command line
     $ Java Server 
     $ Java Client
  ```	 
