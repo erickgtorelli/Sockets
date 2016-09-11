@@ -5,8 +5,10 @@ Network Client-Intermediary-Server with Selective Repeat
 
 ```
  	Command line
-    $ Java Server 
-    $ Java Client
+    $ javac Server.java Client.java Intermediary.java	
+    $ java Server 
+    $ java Intermediary
+    $ java Client
 ```
 
 
