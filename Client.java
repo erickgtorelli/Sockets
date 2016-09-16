@@ -31,7 +31,7 @@ public class Client
             bw.flush();
             System.out.println("Message sent to the Intermediary : "+sendMessage);
  
-            //Get the return message from the server
+             //Get the return message from the server
             InputStream is = socket.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);

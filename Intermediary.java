@@ -26,8 +26,8 @@ public class Intermediary{
             int port_server = 25001;
             InetAddress address = InetAddress.getByName(host);
             socket_with_server = new Socket(address, port_server);
- 			
-            //Reciving message from client
+
+            //Receiving message from client
             socket_with_client = intermediarySocket.accept();
             InputStream is = socket_with_client.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
@@ -54,13 +54,14 @@ public class Intermediary{
 
             //Modifying the message from server 
             message_received = message_received + "Intermediary \n";
+
             //Sending the answer from the server back to the client
             OutputStream os_s = socket_with_client.getOutputStream();
             OutputStreamWriter osw_s = new OutputStreamWriter(os_s);
             BufferedWriter bw_s = new BufferedWriter(osw_s);
             bw_s.write(message_received);
             System.out.println("Message from server sent to the client is "+ message_received);
-            bw.flush();
+            bw_s.flush();
 
         }
         catch (Exception exception)
