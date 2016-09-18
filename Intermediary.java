@@ -14,6 +14,7 @@ public class Intermediary{
 
     public static void main(String args[])
     {
+        Util tools = new Util();
         try
         {
             //Server_intermediary Init
@@ -29,20 +30,13 @@ public class Intermediary{
 
             //Receiving message from client
             socket_with_client = intermediarySocket.accept();
-            InputStream is = socket_with_client.getInputStream();
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            String message_from_client = br.readLine();
+            Package received = tools.receivePackage(socket_with_client);
+            String message_from_client = received.getPackage();
             System.out.println("Message received from client is "+ message_from_client);
-
             //Send the message to the server
-            OutputStream os = socket_with_server.getOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(os);
-            BufferedWriter bw = new BufferedWriter(osw);
- 
             String sendMessage = message_from_client + "Intermediary \n";
-            bw.write(sendMessage);
-            bw.flush();
+            Package sending = new Package(sendMessage);
+            tools.sendPackage(socket_with_server,sending);
             System.out.println("Message sent to the server : "+ sendMessage);
  
             //Get the return message from the server
