@@ -1,3 +1,9 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package javaapplication5;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -8,75 +14,53 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
     
-public class Client
-{
- 
-    private static Socket socket;
-    private static int windowSize;     //Size of the window
-    private static String file;        //File content to transmit
-    private static int intermediaryPort;//Number of the intermediary port
-    private static boolean mode;       //0 normal, 1 debug
-    private static int timeout;        //Timeout time in ms 
-    private static int segmentCounter; //Counter of segments
-    private static int[][] ack;         //time-segment-ack received //0=no ack received, 1=ack received, 2=timeout
- 
-    public static void main(String args[])
-    {
-        try
-        {
-            String host = "localhost";
-            int port_intermediary = 25002;
-            InetAddress address = InetAddress.getByName(host);
-            socket = new Socket(address, port_intermediary);
-            
-            //Send the message to the server
-            OutputStream os = socket.getOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(os);
-            BufferedWriter bw = new BufferedWriter(osw);
- 
-            String sendMessage = "Client " + "\n";
-            bw.write(sendMessage);
-            bw.flush();
-            System.out.println("Message sent to the Intermediary : "+sendMessage);
-            
-            
-             //Get the return message from the server
-            InputStream is = socket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            String message = br.readLine();
-            System.out.println("Message received from the Intermediary : " + message);
-            
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-        finally
-        {
-            //Closing the socket
-            try
-            {
-                socket.close();
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-    }
 
-    static void inicialization(int windowSize,String file,int intermediaryPort, boolean mode, int timeout){
+/**
+ *
+ * @author DaniloJ
+ */
+public class JavaApplication5 {
+
+    private static Socket socket;
+    final int windowSize;          //Size of the window
+    final String file;             //File content to transmit
+    final int intermediaryPort;    //Number of the intermediary port
+    final boolean mode;            //0 normal, 1 debug
+    final double timeout;          //Timeout time in s 
+    
+    private static int segmentCounter;      //Counter of segments
+    private static int[] windowSegments;    //segment to be sent
+    private static double[] windowTime;     //next timeout
+    
+    public static void main(String args[]) throws IOException
+    {
+        JavaApplication5 var = new JavaApplication5(10,"archivo.txt",10,false,10);
+        for(int i=0; i<=var.file.length()/var.windowSize; i++){
+            var.newWindow();
+            for(int x=0;x<var.windowSize;x++){
+                //System.out.println(var.createSegment(x));//aqui se envia el segmento
+                var.setTimeoutToSegment(x);
+            }
+            while(var.selectiveRepeat()){
+                //recibir
+            }
+        }
+        
+    }
+    
+    public JavaApplication5(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
         this.windowSize=windowSize;     
-        this.file=file;
+        this.file=readFile(path,StandardCharsets.UTF_8);
         this.intermediaryPort=intermediaryPort;
         this.mode=mode;
         this.timeout=timeout;        
         segmentCounter=0; 
-        ack = new int[windowSize][3];         
+        windowTime = new double[windowSize];  
+        windowSegments= new int[windowSize];
     }
 
     
@@ -84,7 +68,7 @@ public class Client
     *  MOD: -
     *  RET: String with all chars of file
     */
-    static String readFile(String path, Charset encoding) throws IOException 
+    public String readFile(String path, Charset encoding) throws IOException 
     {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);    //std enconding = StandardCharsets.UTF_8
@@ -94,56 +78,50 @@ public class Client
     *  MOD: -
     *  RET: character encoded
     */
-    static String createSegment(char character){
-        
-        String ret = (segmentCounter+":"+character);
-        segmentCounter++;
+    public String createSegment(int var){
+        String ret = "";
+        if(windowSegments[var]!=-1){
+            char character = file.charAt(windowSegments[var]);
+            ret = (windowSegments[var]+":"+character);
+        }
         return ret;
     }
 
-    static void newWindow(){
-        for( int i=0; i<windowSize; i++){
-            ack[i][0]=0;
-            ack[i][1]=segmentCounter+i;
-            ack[i][2]=0;
-        }
-    }
-
-    static void setTimeoutTime(int seg){
-        ack[segmentCounter-seg][0]=System.currentTimeMillis()+timeout;
-    }
-
-    static void setAck(int seg){
-        ack[seg][2]=1;
-    }
-
-    static boolean checkWindowAck(){
-        while (i<windowSize && ack[i][2] == 1){
+    public void newWindow(){
+        int i=0;
+        while(segmentCounter<file.length() && i<windowSize){
+            windowSegments[i]=segmentCounter;
+            windowTime[i]=0;
+            segmentCounter++;
             i++;
         }
-        if (i == windowSize){
-            return true;
-        }
-        else{
-            return false
-        }
-    }
-
-    static void windowTimeout(){
-        for( int i=0; i<windowSize; i++){
-            if (ack[i][0] > System.currentTimeMillis()){
-                ack[i][2]=2;
+        if(segmentCounter>=file.length()){
+            for(int x=i;x<windowSize;x++){
+                windowSegments[x]=-1;
+                windowTime[x]=-1;
             }
         }
     }
 
-    static void newSlidingWindow(){
-        newWindow();
-        for(int i=0; i<windowSize;i++){
-            setTimeoutTime(i);
-            createSegment(file.charAt(segmentCounter));
-            //send string here
-        }
+    public void setTimeoutToSegment(int seg){
+        windowTime[seg]=System.currentTimeMillis()+timeout;
     }
 
+    public void setAck(int seg){
+        windowTime[seg]=-1;
+    }
+
+    public boolean selectiveRepeat(){
+        boolean ack=false;
+        for(int x=0;x<windowSize;x++){
+                if(windowTime[x]!=-1){
+                    if(windowTime[x]>System.currentTimeMillis()){
+                        //System.out.println(var.createSegment(x));//aqui se reenvia el segmento
+                        setTimeoutToSegment(x);//se reprograma el timeout
+                    }
+                    ack = true;
+                }   
+            }
+        return ack;
+    }
 }
