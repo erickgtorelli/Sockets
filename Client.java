@@ -87,19 +87,15 @@ public class JavaApplication5 {
         return ret;
     }
 
-    public void newWindow(){
-        int i=0;
-        while(segmentCounter<file.length() && i<windowSize){
-            windowSegments[i]=segmentCounter;
-            windowTime[i]=0;
-            segmentCounter++;
-            i++;
-        }
-        if(segmentCounter>=file.length()){
-            for(int x=i;x<windowSize;x++){
-                windowSegments[x]=-1;
-                windowTime[x]=-1;
+    public void newWindow() {
+        if (segmentCounter < file.length()) {
+            for (int i = 1; i < windowSize - 1; i++) {
+                windowSegments[windowSize - i] = windowSegments[windowSize - i - 1];
+                windowTime[windowSize - i] = windowTime[windowSize - i - 1];
             }
+            windowSegments[0] = segmentCounter;
+            windowTime[0] = 0;
+            segmentCounter++;
         }
     }
 
@@ -111,17 +107,15 @@ public class JavaApplication5 {
         windowTime[seg]=-1;
     }
 
-    public boolean selectiveRepeat(){
-        boolean ack=false;
-        for(int x=0;x<windowSize;x++){
-                if(windowTime[x]!=-1){
-                    if(windowTime[x]>System.currentTimeMillis()){
-                        //System.out.println(var.createSegment(x));//aqui se reenvia el segmento
-                        setTimeoutToSegment(x);//se reprograma el timeout
-                    }
-                    ack = true;
-                }   
+    public boolean selectiveRepeat() {
+        for (int x = 0; x < windowSize; x++) {
+            if (windowTime[x] != -1) {
+                if (windowTime[x] > System.currentTimeMillis()) {
+                    //System.out.println(var.createSegment(x));//aqui se reenvia el segmento
+                    setTimeoutToSegment(x);//se reprograma el timeout
+                }
             }
-        return ack;
+        }
+        return windowTime[0] != -1;
     }
 }
