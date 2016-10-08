@@ -19,7 +19,7 @@ public class Client
             String host = "localhost";
             int port_intermediary = 25002;
             InetAddress address = InetAddress.getByName(host);
-            socket = new Socket(address, port_intermediary);
+            socket = sda fgnew Socket(address, port_intermediary);
             
             //Send the message to the server
             OutputStream os = socket.getOutputStream();
