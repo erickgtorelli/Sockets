@@ -38,7 +38,7 @@ public class JavaApplication5 {
     
     public static void main(String args[]) throws IOException
     {
-<<<<<<< HEAD
+
         try
         {
             String host = "localhost";
@@ -64,22 +64,26 @@ public class JavaApplication5 {
             String message = br.readLine();
             System.out.println("Message received from the Intermediary : " + message);
             
-=======
-        JavaApplication5 var = new JavaApplication5(10,"archivo.txt",10,false,10);
-        for(int i=0; i<=var.file.length()/var.windowSize; i++){
-            var.newWindow();
-            for(int x=0;x<var.windowSize;x++){
-                //System.out.println(var.createSegment(x));//aqui se envia el segmento
-                var.setTimeoutToSegment(x);
+
+            JavaApplication5 var = new JavaApplication5(10,"archivo.txt",10,false,10);
+            for(int i=0; i<=var.file.length()/var.windowSize; i++){
+                var.newWindow();
+                for(int x=0;x<var.windowSize;x++){
+                    //System.out.println(var.createSegment(x));//aqui se envia el segmento
+                    var.setTimeoutToSegment(x);
+                }
+                while(var.selectiveRepeat()){
+                    //recibir
+                }
             }
-            while(var.selectiveRepeat()){
-                //recibir
-            }
->>>>>>> origin/danilo
+            
         }
-        
+        catch (Exception exception)
+                {
+                    exception.printStackTrace();
+                }
+
     }
-    
     public JavaApplication5(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);

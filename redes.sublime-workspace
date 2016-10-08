@@ -1,0 +1,546 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"lock",
+				"lock_client_socket"
+			],
+			[
+				"rela",
+				"release"
+			],
+			[
+				"loc",
+				"lock_server_socket"
+			],
+			[
+				"from",
+				"fromClient"
+			],
+			[
+				"tru",
+				"tryAcquire"
+			],
+			[
+				"thread",
+				"threadName"
+			],
+			[
+				"th",
+				"threadName"
+			],
+			[
+				"send",
+				"sendMessage"
+			],
+			[
+				"socket",
+				"socket_with_server"
+			],
+			[
+				"me",
+				"message_from_client"
+			],
+			[
+				"re",
+				"received"
+			],
+			[
+				"pu",
+				"public"
+			],
+			[
+				"so",
+				"socket_with_server"
+			],
+			[
+				"mess",
+				"message_received"
+			],
+			[
+				"socket_",
+				"socket_with_server"
+			],
+			[
+				"hr",
+				"hr\tTag"
+			],
+			[
+				"websites",
+				"websites_up"
+			],
+			[
+				"text-",
+				"text-indent"
+			],
+			[
+				"wi",
+				"width"
+			],
+			[
+				"border",
+				"border-style"
+			],
+			[
+				"mar",
+				"margin"
+			],
+			[
+				"di",
+				"div\tTag"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "Client.java",
+			"settings":
+			{
+				"buffer_size": 5077,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Intermediary.java",
+			"settings":
+			{
+				"buffer_size": 4881,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Server.java",
+			"settings":
+			{
+				"buffer_size": 2024,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/User/MyJava.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Java/Ant.sublime-build",
+					""
+				],
+				[
+					"Packages/Java/JavaC.sublime-build",
+					""
+				],
+				[
+					"Packages/User/MyJava.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/MyJava.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 354.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"git pu",
+				"Git: Push"
+			],
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"git st",
+				"Git: Status"
+			],
+			[
+				"git add",
+				"Git: Add All"
+			],
+			[
+				"git ",
+				"Git: Status"
+			],
+			[
+				"set sin",
+				"Set Syntax: MultiMarkdown"
+			],
+			[
+				"git commit",
+				"Set Syntax: Git Commit Message"
+			],
+			[
+				"g",
+				"Git: Init"
+			],
+			[
+				"code",
+				"Snippet: Markdown Codeblock"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Package Control: Install Package"
+			],
+			[
+				"Pack",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: in",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: i",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 431.0
+	},
+	"console":
+	{
+		"height": 139.0,
+		"history":
+		[
+			"git commit -m \"First commit\" ",
+			"git push",
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets"
+	],
+	"file_history":
+	[
+		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/Respuesta.html",
+		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/ClienteLab7.java",
+		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/Respuesta Viterbi.html",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Server.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Intermediary.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Util.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Client.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Package.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/.gitignore",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/Client.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/Server.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/README.md",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/Util",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/Server.html",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/Client.class",
+		"/home/erick/.config/sublime-text-3/Packages/User/MyJava.sublime-build",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/CloseOpenPortsLinux.txt",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/TCPClient.java",
+		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/TCPServer.java",
+		"/home/erick/Dropbox/U/Redes/Programada/HelloWorld.java",
+		"/home/erick/Code/Coursera/peer_assessment_siteace/siteace.js",
+		"/home/erick/Code/Coursera/week_4_image_share/lib/collections.js",
+		"/home/erick/Code/Coursera/week_4_image_share/client/image_share.html",
+		"/home/erick/Code/Coursera/week_4_image_share/client/main.js",
+		"/home/erick/Code/Coursera/peer_assessment_siteace/siteace.css",
+		"/home/erick/Code/Coursera/week_4_image_share/client/image_share.css",
+		"/home/erick/Code/Coursera/peer_assessment_siteace/siteace.html",
+		"/home/erick/Desktop/proyecto.sql",
+		"/home/erick/Desktop/U/Bases/querys proyecto.sql",
+		"/home/erick/Code/Coursera/week_4_image_share/server/startup.js",
+		"/home/erick/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/erick/Downloads/_5728f992a5cf916320bbb56fc87995da_week_1_image_share/week_1_image_share/image_share.js",
+		"/home/erick/Desktop/app/client/main.js",
+		"/home/erick/Desktop/U/Bases/querys originales",
+		"/home/erick/Desktop/U/Bases/proyecto querys utiles.sql",
+		"/home/erick/Desktop/first_app/client/main.css",
+		"/home/erick/Desktop/app/client/main.html",
+		"/home/erick/Desktop/first_app/client/main.html",
+		"/home/erick/Desktop/first_app/client/main.js",
+		"/home/erick/Downloads/_5728f992a5cf916320bbb56fc87995da_week_1_image_share/week_1_image_share/image_share.html",
+		"/home/erick/Desktop/first_app/package.json",
+		"/tmp/mozilla_erick0/Licencia Sublime",
+		"/home/erick/Downloads/drupal-8.1.0/index.php",
+		"/home/erick/Downloads/drupal-8.1.0/README.txt",
+		"/media/erick/USB Stick/Tarea 2/trasladar la señal.txt",
+		"/home/erick/Desktop/U/Bases/dbxml-6.0.18/README",
+		"/home/erick/Code/HTML,CSS,JS/Homework/home.html",
+		"/home/erick/Code/HTML,CSS,JS/JS/Hello.html",
+		"/home/erick/Code/HTML,CSS,JS/Homework/style.css",
+		"/home/erick/Desktop/VM/concat.txt",
+		"/home/erick/Downloads/drupal-8.1.0/LICENSE.txt",
+		"/home/erick/Code/HTML,CSS,JS/about.html",
+		"/home/erick/Code/HTML,CSS,JS/contact.html",
+		"/home/erick/Code/HTML,CSS,JS/bootstrap.css",
+		"/home/erick/Code/HTML,CSS,JS/index.html",
+		"/home/erick/Code/HTML,CSS,JS/styles.css",
+		"/home/erick/Code/HTML,CSS,JS/style.css"
+	],
+	"find":
+	{
+		"height": 27.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"getPackage",
+			"_id",
+			"createdBy"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Client.java",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5077,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2814,
+								2814
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Java/Java.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1496.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Intermediary.java",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4881,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Java/Java.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 408.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "Server.java",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2024,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Java/Java.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 204.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 115.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 132.0
+	},
+	"output.markdown":
+	{
+		"height": 112.0
+	},
+	"pinned_build_system": "",
+	"project": "redes.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"ser",
+				"Server.java"
+			],
+			[
+				"in",
+				"Intermediary.java"
+			],
+			[
+				"cl",
+				"Client.java"
+			],
+			[
+				"ul",
+				"Util.java"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 243.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -7,7 +7,12 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
-import java.util.concurrent.Semaphore;
+import javax.swing.Box;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /*
 * This is a multi-thread class
@@ -18,40 +23,45 @@ import java.util.concurrent.Semaphore;
 public class Intermediary implements Runnable{
     private Thread t;
     private String threadName;
-	private static Socket socket_with_client;
- 	private static Socket socket_with_server;
+	  private static Socket socket_with_client;
+ 	  private static Socket socket_with_server;
     private ServerSocket intermediarySocket;
     Util tools = new Util();
     String message_from_client;
     String message_received;
+    private int probabilityP;
+    private boolean debug;
 
-    Intermediary(String name)
+    Intermediary(String name, int portServer,int portClient,int probabilityP,boolean debug)
     {
         threadName = name;
 
         System.out.println("Creating " +  threadName);
+        //Only the thread called FromServer will start the ports and the variables
         if(threadName=="FromServer"){
-                try
-                {
-                    //Server_intermediary Init
-                    int port_intermediary = 25002;
-                    intermediarySocket = new ServerSocket(port_intermediary);
-                    System.out.println("Intermediary Started and listening to the port " + port_intermediary);
-                   //Listening the Server
-                    String host = "localhost";
-                    int port_server = 25001;
-                    InetAddress address = InetAddress.getByName(host);
-                    socket_with_server = new Socket(address, port_server);
-                    //Socket with client
-                    socket_with_client = intermediarySocket.accept();
-                }
-                catch (Exception exception)
-                {
-                    exception.printStackTrace();
-                }
+          this.debug = debug;
+          this.probabilityP = probabilityP;
+          try
+          {
+              //Server_intermediary Init
+              int port_intermediary = portClient;
+              intermediarySocket = new ServerSocket(port_intermediary);
+              System.out.println("Intermediary Started and listening to the port " + port_intermediary);
+             //Listening the Server
+              String host = "localhost";
+              int port_server = portServer;
+              InetAddress address = InetAddress.getByName(host);
+              socket_with_server = new Socket(address, port_server);
+              //Socket with client
+              socket_with_client = intermediarySocket.accept();
+          }
+          catch (Exception exception)
+          {
+              exception.printStackTrace();
+          }
         }
     }  
-
+    //main flow of the intermediary class 
     @Override
     public void run(){
         try
@@ -65,8 +75,6 @@ public class Intermediary implements Runnable{
                      Package received = tools.receivePackage(socket_with_client);
                      message_from_client = received.getPackage();
                      System.out.println("Message received from client is "+ message_from_client);
-                     
-                 
                      //Send the message to the server
                      String sendMessage = message_from_client + "Intermediary \n";
                      Package sending = new Package(sendMessage);
@@ -86,20 +94,15 @@ public class Intermediary implements Runnable{
                     BufferedReader br_s = new BufferedReader(isr_s);
                     message_received = br_s.readLine();
                     System.out.println("Message received from the server : " + message_received);
-                    
-                
                  //Modifying the message from server 
                  message_received = message_received + "Intermediary \n";
-               
                     //Sending the answer from the server back to the client
                     OutputStream os_s = socket_with_client.getOutputStream();
                     OutputStreamWriter osw_s = new OutputStreamWriter(os_s);
                     BufferedWriter bw_s = new BufferedWriter(osw_s);
                     bw_s.write(message_received);
                     System.out.println("Message from server sent to the client is "+ message_received);
-                    bw_s.flush();
-                    ;
-                
+                    bw_s.flush();                
             }
         }
         }
@@ -129,12 +132,68 @@ public class Intermediary implements Runnable{
           t.start ();
        }
     }
-    public static void main(String args[])
+    /*
+    * Ask for the initial values of intermediary
+    * If everthing is ok run the StartIntermediary
+    */
+    private static void guiArguments(){
+       //arguments
+        int portClient, portServer, probabilityP;
+        //enter fields
+        JTextField clientPort = new JTextField(5);
+        JTextField serverPort = new JTextField(5);
+        JTextField probability = new JTextField(5);
+        //panel initialization 
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("Client Port:"));
+        myPanel.add(clientPort);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Server Port:"));
+        myPanel.add(serverPort);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Packages lost rate %:"));
+        myPanel.add(probability);
+        JCheckBox mode = new JCheckBox("Slow execution");
+        myPanel.add(mode);
+  
+
+        //value Checking 
+        int result = JOptionPane.showConfirmDialog(null, myPanel,
+                "Please enter the initial values", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                portClient = Integer.parseInt(clientPort.getText());
+                portServer = Integer.parseInt(serverPort.getText());
+                probabilityP = Integer.parseInt(probability.getText());
+                //check for positive values
+                if (portClient > 0 && portServer > 0 && probabilityP >= 0) { 
+                   if(!(portServer == portClient)){
+                      startIntermediary(portClient,portServer,probabilityP,mode.isSelected());
+                   }
+                   else{
+                    JOptionPane.showMessageDialog(null, "The ports for Server and Client must be different", "Error", JOptionPane.ERROR_MESSAGE);
+                   }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid initial values", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (java.lang.NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, "Invalid initial values", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } 
+    }
+    //Start the intermediary class
+    private static void  startIntermediary(int portClient,int portServer,int probabilityP,boolean debug)
     {
-      Intermediary fromServer = new Intermediary("FromServer");
-      Intermediary fromClient = new Intermediary("FromClient");
+      Intermediary fromServer = new Intermediary("FromServer",portServer,portClient,probabilityP,debug);
+      Intermediary fromClient = new Intermediary("FromClient",portServer,portClient,probabilityP,debug);
 
       fromServer.start();
       fromClient.start();
     }
+    public static void main(String args[])
+    {
+      guiArguments();
+    
+    }
+
 }
