@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.lang.Math;
 
 /*
 * This is a multi-thread class
@@ -31,16 +32,18 @@ public class Intermediary implements Runnable{
     String message_received;
     private int probabilityP;
     private boolean debug;
+    BufferedReader br = null;
+
 
     Intermediary(String name, int portServer,int portClient,int probabilityP,boolean debug)
     {
         threadName = name;
-
+        this.debug = debug;
+        this.probabilityP = probabilityP;
         System.out.println("Creating " +  threadName);
         //Only the thread called FromServer will start the ports and the variables
         if(threadName=="FromServer"){
-          this.debug = debug;
-          this.probabilityP = probabilityP;
+          
           try
           {
               //Server_intermediary Init
@@ -70,39 +73,46 @@ public class Intermediary implements Runnable{
          {  
             while(true)
             {
-                
                      //Receiving message from client
                      Package received = tools.receivePackage(socket_with_client);
                      message_from_client = received.getPackage();
+                     if(message_from_client != null){
                      System.out.println("Message received from client is "+ message_from_client);
-                     //Send the message to the server
-                     String sendMessage = message_from_client + "Intermediary \n";
-                     Package sending = new Package(sendMessage);
-                     tools.sendPackage(socket_with_server,sending);
-                     System.out.println("Message sent to the server : "+ sendMessage);
                      
+                     //Send the message to the server
+                     //IF DEBUG MODE 
+                     if(debug){
+                        boolean result = askPackageDebug();
+                        if (result) {
+                         System.out.println("Sending Package!");
+                         tools.sendPackage(socket_with_server,received); 
+                        }
+                     }
+                     // !DEBUG
+                     else{
+                      
+                       int random = (int )(Math.random() * 100 + 1);
+                       //Lost of packages simulation with the probablityP 
+                       if(random > probabilityP){
+                         tools.sendPackage(socket_with_server,received);
+                       }
+                       else{
+                        System.out.println("Package Lost!");
+                       }
+                      }
+                    }
             }
          }
          else if(threadName=="FromServer"){
-            
             while(true)
             {
                 
                     //Get the return message from the server
-                    InputStream is_s = socket_with_server.getInputStream();
-                    InputStreamReader isr_s = new InputStreamReader(is_s);
-                    BufferedReader br_s = new BufferedReader(isr_s);
-                    message_received = br_s.readLine();
-                    System.out.println("Message received from the server : " + message_received);
-                 //Modifying the message from server 
-                 message_received = message_received + "Intermediary \n";
+                    Package received = tools.receivePackage(socket_with_server);
+                    String message_from_server = received.getPackage();
+                    System.out.println("Message received from the server : " + message_from_server);
                     //Sending the answer from the server back to the client
-                    OutputStream os_s = socket_with_client.getOutputStream();
-                    OutputStreamWriter osw_s = new OutputStreamWriter(os_s);
-                    BufferedWriter bw_s = new BufferedWriter(osw_s);
-                    bw_s.write(message_received);
-                    System.out.println("Message from server sent to the client is "+ message_received);
-                    bw_s.flush();                
+                    tools.sendPackage(socket_with_client,received);              
             }
         }
         }
@@ -131,6 +141,21 @@ public class Intermediary implements Runnable{
           t = new Thread (this, threadName);
           t.start ();
        }
+    }
+
+    private boolean askPackageDebug(){
+      JPanel panel = new JPanel();
+      JCheckBox mode = new JCheckBox("Send the Package");
+      panel.add(mode);
+      int result = JOptionPane.showConfirmDialog(null, panel,
+                "Do you want to send this package?", JOptionPane.OK_CANCEL_OPTION);
+
+      if (result == JOptionPane.OK_OPTION){
+        return mode.isSelected();
+      }
+
+      return false;
+
     }
     /*
     * Ask for the initial values of intermediary
@@ -168,6 +193,7 @@ public class Intermediary implements Runnable{
                 //check for positive values
                 if (portClient > 0 && portServer > 0 && probabilityP >= 0) { 
                    if(!(portServer == portClient)){
+                    
                       startIntermediary(portClient,portServer,probabilityP,mode.isSelected());
                    }
                    else{

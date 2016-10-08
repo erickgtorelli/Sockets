@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javaapplication5;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -23,7 +23,7 @@ import java.nio.file.Paths;
  *
  * @author DaniloJ
  */
-public class JavaApplication5 {
+public class Client{
 
     private static Socket socket;
     final int windowSize;          //Size of the window
@@ -44,7 +44,7 @@ public class JavaApplication5 {
             String host = "localhost";
             int port_intermediary = 25002;
             InetAddress address = InetAddress.getByName(host);
-            socket = sda fgnew Socket(address, port_intermediary);
+            socket = new Socket(address, port_intermediary);
             
             //Send the message to the server
             OutputStream os = socket.getOutputStream();
@@ -65,7 +65,7 @@ public class JavaApplication5 {
             System.out.println("Message received from the Intermediary : " + message);
             
 
-            JavaApplication5 var = new JavaApplication5(10,"archivo.txt",10,false,10);
+            Client var = new Client(10,"archivo.txt",10,false,10);
             for(int i=0; i<=var.file.length()/var.windowSize; i++){
                 var.newWindow();
                 for(int x=0;x<var.windowSize;x++){
@@ -84,7 +84,7 @@ public class JavaApplication5 {
                 }
 
     }
-    public JavaApplication5(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
+    public Client(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);
         this.intermediaryPort=intermediaryPort;
