@@ -1,32 +1,18 @@
+
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 
-import java.net.Socket;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
-import javax.swing.Box;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import java.lang.Math;
     
 
 /**
@@ -52,10 +38,10 @@ public class Client{
     {
         try
         {
-            Client var = new Client(10, "archivo.txt", 10, false, 10);
+            Client var = new Client(10, "archivo.txt", 10, false, 1000);
             boolean finishedFile = false;
             boolean allAck= false;
-            while (!finishedFile && !allAck) {
+            while (!finishedFile || !allAck) {
                 var.listenForAck();
                 allAck = var.selectiveRepeat();
                 if (var.windowTime[0] == -1 && !finishedFile) {
@@ -95,8 +81,8 @@ public class Client{
 
     public void listenForAck(){
         Package p = util.receivePackage(socket);
-        int segment = p.getPackageSec();
-        
+        int segment = p.sec;
+        System.out.println("ACK: " + segment);
         boolean found = false;
         int var = 0;
         while(!found){
@@ -144,18 +130,22 @@ public class Client{
     public boolean newWindow() {
         boolean finished = true;
         if (segmentCounter < file.length()) {
-            for (int i = 1; i < windowSize; i++) {
-                windowSegments[windowSize - i] = windowSegments[windowSize - i - 1];
-                windowTime[windowSize - i] = windowTime[windowSize - i - 1];
+            for (int i = 0; i < windowSize-1; i++) {
+                windowSegments[i] = windowSegments[i + 1];
+                windowTime[i] = windowTime[i + 1];
             }
-            windowSegments[0] = segmentCounter;
-            windowTime[0] = 0;
+            windowSegments[windowSize-1] = segmentCounter;
+            windowTime[windowSize-1] = 0;
             segmentCounter++;
             finished = false;
         }
         /*System.out.print("Nueva ventana: ");
         for(int i= 0; i<windowSize;i++){
             System.out.print(windowSegments[i]+" ");
+        }
+        System.out.print("Ventana tiempo: ");
+        for(int i= 0; i<windowSize;i++){
+            System.out.print(windowTime[i]+" ");
         }
         System.out.println();*/
         return finished;
@@ -188,10 +178,14 @@ public class Client{
                 allAck = false;
                 if (windowTime[x] > System.currentTimeMillis()){
                     resend++;
-                }
-                if (windowTime[x] > System.currentTimeMillis() || windowTime[x]==0) {
                     util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
                     setTimeoutToSegment(x);//se reprograma/programa el timeout
+                    System.out.println("Renviando: " + windowSegments[x]);
+                }
+                if (windowTime[x]==0) {
+                    util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
+                    setTimeoutToSegment(x);//se reprograma/programa el timeout
+                    System.out.println("Enviando: " + windowSegments[x]);
                 }
             }
         }

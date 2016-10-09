@@ -12,7 +12,7 @@
 public class Package{
 	private String pack;
 	private char content; 
-	private int sec; 
+	int sec; 
 	/*
 	* basic constructor class
 	* @param sec number of the package
