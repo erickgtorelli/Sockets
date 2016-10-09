@@ -4,13 +4,6 @@
  * and open the template in the editor.
  */
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -35,47 +28,23 @@ public class Client{
     private static int segmentCounter;      //Counter of segments
     private static int[] windowSegments;    //segment to be sent
     private static double[] windowTime;     //next timeout
+    private final Util util;
     
     public static void main(String args[]) throws IOException
     {
-
         try
         {
-            String host = "localhost";
-            int port_intermediary = 25002;
-            InetAddress address = InetAddress.getByName(host);
-            socket = new Socket(address, port_intermediary);
-            
-            //Send the message to the server
-            OutputStream os = socket.getOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(os);
-            BufferedWriter bw = new BufferedWriter(osw);
- 
-            String sendMessage = "Client " + "\n";
-            bw.write(sendMessage);
-            bw.flush();
-            System.out.println("Message sent to the Intermediary : "+sendMessage);
-            
-            
-             //Get the return message from the server
-            InputStream is = socket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            String message = br.readLine();
-            System.out.println("Message received from the Intermediary : " + message);
-            
-
             Client var = new Client(10, "archivo.txt", 10, false, 10);
             boolean finishedFile = false;
             boolean allAck= false;
             while (!finishedFile && !allAck) {
-                //recibir
+                var.listenForAck();
                 allAck = var.selectiveRepeat();
                 if (var.windowTime[0] == -1 && !finishedFile) {
                     finishedFile = var.newWindow();
                 }
             }
-            
+            var.finished();
         }
         catch (Exception exception)
             {
@@ -84,6 +53,7 @@ public class Client{
 
     }
     public Client(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
+        util = new Util();
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);
         this.intermediaryPort=intermediaryPort;
@@ -99,6 +69,39 @@ public class Client{
         }
     }
 
+    public void listenForAck(){
+        Package p = util.receivePackage(socket);
+        String segment = p.getPackageSec();
+        
+        boolean found = false;
+        int var = 0;
+        while(!found){
+            if(segmentAt(var)==segment){
+                found = true;
+                setAck(var);
+            }
+            var++;
+        }
+    }
+    
+    public void finished(){
+        util.sendPackage(socket, new Package(-1,' '));
+        double time = System.currentTimeMillis()+timeout;
+        boolean received = false;
+        while(!received){
+            Package p = util.receivePackage(socket);
+            if (" ".equals(p.getPackageContent())){
+                received = true;
+            }
+            if(time > System.currentTimeMillis()){
+                util.sendPackage(socket, new Package(-1,' '));
+            }
+        }
+    }
+    
+    public int segmentAt(int x){
+        return windowSegments[x];
+    }
     
     /* REQ: path of file, encoding of file
     *  MOD: -
@@ -108,19 +111,6 @@ public class Client{
     {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);    //std enconding = StandardCharsets.UTF_8
-    }
-
-    /* REQ: character to be encoded
-    *  MOD: -
-    *  RET: character encoded
-    */
-    public String createSegment(int var){
-        String ret = "";
-        if(windowSegments[var]!=-1){
-            char character = file.charAt(windowSegments[var]);
-            ret = (windowSegments[var]+":"+character);
-        }
-        return ret;
     }
 
     /* REQ: -
@@ -173,11 +163,12 @@ public class Client{
             if (windowTime[x] != -1) {
                 allAck = false;
                 if (windowTime[x] > System.currentTimeMillis() || windowTime[x]==0) {
-                    //System.out.println(var.createSegment(x));//aqui se reenvia el segmento
+                    util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
                     setTimeoutToSegment(x);//se reprograma/programa el timeout
                 }
             }
         }
         return allAck;
     }
+    
 }
