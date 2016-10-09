@@ -10,6 +10,23 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.InetAddress;
+import javax.swing.Box;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import java.lang.Math;
     
 
 /**
@@ -70,6 +87,10 @@ public class Client{
             windowSegments[i] = segmentCounter;
             segmentCounter++;
         }
+        int port = 25002;
+        String host = "localhost";
+        InetAddress address = InetAddress.getByName(host);
+        socket = new Socket(address, port);
     }
 
     public void listenForAck(){
