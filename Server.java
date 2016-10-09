@@ -7,16 +7,19 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.io.PrintWriter;
+import java.io.*;
  
 public class Server
 {
-    private ArrayList<char> recivedMessage = new ArrayList<char>();
+    private ArrayList<Character> receivedMessage = new ArrayList<Character>();
     private static Socket socket;
-    Util tools = new Util();
-    boolean fileCompleted = false;
+    
+    public boolean fileCompleted = false;
+
     public static void main(String[] args)
     {
+        Server server = new Server();
+        Util tools = new Util();
         try
         {
  
@@ -25,26 +28,26 @@ public class Server
             System.out.println("Server Started and listening to the port " + port);
  
             //Server is running always. This is done using this while(true) loop
-            while(!fileCompleted)
+            while(!server.fileCompleted)
             {
 
                 //Reading the message from the client
                 socket = serverSocket.accept();
                 Package received = tools.receivePackage(socket);
                 //fileCompleted ? 
-                if(reviced.getPackage().equals("finish")){
-                    fileCompleted = true;
+                if(received.getPackageSec() == -1){
+                    server.fileCompleted = true;
                 }
                 //file don't compleated, continue
                 else{
-                    //transfer the recived content to the ArrayList
-                    recivedMessage.add(recived.getPackageSec(),recived.getPackageContent());
+                    //transfer the received content to the ArrayList
+                    server.receivedMessage.add(received.getPackageSec(),received.getPackageContent());
                     //Returning Message                
                     //Sending the response back to the client.
-                    tools.sendPackage(socket,recived);
+                    tools.sendPackage(socket,received);
                 }
             }
-            writeIntoFile(recivedMessage);
+            server.writeIntoFile(server.receivedMessage);
         }
         catch (Exception e)
         {
@@ -65,7 +68,7 @@ public class Server
       
     }
 
-    public void writeIntoFile(ArrayList<Character> list) throws FileNotFoundException{
+    public void writeIntoFile(ArrayList<Character> list)throws FileNotFoundException{
         StringBuilder builder = new StringBuilder(list.size());
         for(Character ch: list)
         {

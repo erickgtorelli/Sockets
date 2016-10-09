@@ -33,12 +33,12 @@ public class Package{
 		return pack;
 	}
 
-	public String getPackageContent(){
+	public char getPackageContent(){
 		//return pack.substring(3,4);
 		return this.content;
 	}
 
-	public String getPackageSec(){
+	public int getPackageSec(){
 		//return pack.substring(1,2);
 		return this.sec; 
 	} 

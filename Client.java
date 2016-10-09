@@ -29,7 +29,7 @@ public class Client{
     private static int[] windowSegments;    //segment to be sent
     private static double[] windowTime;     //next timeout
     private final Util util;
-    private int resent;
+    public int resend;
     
     public static void main(String args[]) throws IOException
     {
@@ -46,7 +46,7 @@ public class Client{
                 }
             }
             var.finished();
-            System.out.println("Resent packages: "+resend);
+            System.out.println("Resent packages: "+ var.resend);
         }
         catch (Exception exception)
             {
@@ -74,7 +74,7 @@ public class Client{
 
     public void listenForAck(){
         Package p = util.receivePackage(socket);
-        int segment = p.sec;
+        int segment = p.getPackageSec();
         
         boolean found = false;
         int var = 0;
@@ -165,7 +165,7 @@ public class Client{
         for (int x = 0; x < windowSize; x++) {
             if (windowTime[x] != -1) {
                 allAck = false;
-                if (windowTime[x] > System.currentTimeMillis(){
+                if (windowTime[x] > System.currentTimeMillis()){
                     resend++;
                 }
                 if (windowTime[x] > System.currentTimeMillis() || windowTime[x]==0) {
