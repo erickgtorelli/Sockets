@@ -29,6 +29,7 @@ public class Client{
     private static int[] windowSegments;    //segment to be sent
     private static double[] windowTime;     //next timeout
     private final Util util;
+    private int resent;
     
     public static void main(String args[]) throws IOException
     {
@@ -45,6 +46,7 @@ public class Client{
                 }
             }
             var.finished();
+            System.out.println("Resent packages: "+resend);
         }
         catch (Exception exception)
             {
@@ -53,6 +55,7 @@ public class Client{
 
     }
     public Client(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
+        resend=0;
         util = new Util();
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);
@@ -71,7 +74,7 @@ public class Client{
 
     public void listenForAck(){
         Package p = util.receivePackage(socket);
-        String segment = p.getPackageSec();
+        int segment = p.sec;
         
         boolean found = false;
         int var = 0;
@@ -162,6 +165,9 @@ public class Client{
         for (int x = 0; x < windowSize; x++) {
             if (windowTime[x] != -1) {
                 allAck = false;
+                if (windowTime[x] > System.currentTimeMillis(){
+                    resend++;
+                }
                 if (windowTime[x] > System.currentTimeMillis() || windowTime[x]==0) {
                     util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
                     setTimeoutToSegment(x);//se reprograma/programa el timeout
