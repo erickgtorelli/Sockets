@@ -14,7 +14,7 @@ public class Server
     private ArrayList<char> recivedMessage = new ArrayList<char>();
     private static Socket socket;
     Util tools = new Util();
-    boolean fileCompleated = false;
+    boolean fileCompleted = false;
     public static void main(String[] args)
     {
         try
@@ -25,7 +25,7 @@ public class Server
             System.out.println("Server Started and listening to the port " + port);
  
             //Server is running always. This is done using this while(true) loop
-            while(!fileCompleated)
+            while(!fileCompleted)
             {
 
                 //Reading the message from the client
