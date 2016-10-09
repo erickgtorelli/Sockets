@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.io.PrintWriter;
  
 public class Server
 {
@@ -66,4 +67,16 @@ public class Server
       
     }
 
+    public void writeIntoFile(ArrayList<Character> list) throws FileNotFoundException{
+        StringBuilder builder = new StringBuilder(list.size());
+        for(Character ch: list)
+        {
+            builder.append(ch);
+        }
+        try(  PrintWriter out = new PrintWriter( "filename.txt" )  ){
+            out.println( builder.toString()); 
+        }
+    }
 }
+
+
