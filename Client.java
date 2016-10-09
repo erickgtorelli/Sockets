@@ -74,7 +74,7 @@ public class Client{
 
     public void listenForAck(){
         Package p = util.receivePackage(socket);
-        String segment = p.getPackageSec();
+        int segment = p.sec;
         
         boolean found = false;
         int var = 0;
