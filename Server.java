@@ -13,7 +13,8 @@ public class Server
 {
     private ArrayList<char> recivedMessage = new ArrayList<char>();
     private static Socket socket;
- 
+    Util tools = new Util();
+    boolean fileCompleated = false;
     public static void main(String[] args)
     {
         try
@@ -24,29 +25,26 @@ public class Server
             System.out.println("Server Started and listening to the port " + port);
  
             //Server is running always. This is done using this while(true) loop
-            while(true)
+            while(!fileCompleated)
             {
+
                 //Reading the message from the client
                 socket = serverSocket.accept();
-                InputStream is = socket.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String message = br.readLine();
-                System.out.println("Message received from client is "+message);
- 
-                //Returning Message
-                String returnMessage;
-                     returnMessage = message + "Server \n";
-                
-                //Sending the response back to the client.
-                OutputStream os = socket.getOutputStream();
-                OutputStreamWriter osw = new OutputStreamWriter(os);
-                BufferedWriter bw = new BufferedWriter(osw);
-                bw.write(returnMessage);
-                System.out.println("Message sent to the client is "+returnMessage);
-                bw.flush();
-                
+                Package received = tools.receivePackage(socket);
+                //fileCompleted ? 
+                if(reviced.getPackage().equals("finish")){
+                    fileCompleted = true;
+                }
+                //file don't compleated, continue
+                else{
+                    //transfer the recived content to the ArrayList
+                    recivedMessage.add(recived.getPackageSec(),recived.getPackageContent());
+                    //Returning Message                
+                    //Sending the response back to the client.
+                    tools.sendPackage(socket,recived);
+                }
             }
+            writeIntoFile(recivedMessage);
         }
         catch (Exception e)
         {
