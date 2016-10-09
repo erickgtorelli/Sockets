@@ -78,19 +78,22 @@ public class Client{
         InetAddress address = InetAddress.getByName(host);
         socket = new Socket(address, port);
     }
-
+    
     public void listenForAck(){
         Package p = util.receivePackage(socket);
         int segment = p.sec;
         System.out.println("ACK: " + segment);
         boolean found = false;
         int var = 0;
-        while(!found){
+        while(!found && var<windowSize){
             if(segmentAt(var)==segment){
                 found = true;
                 setAck(var);
             }
             var++;
+        }
+        if(var>=windowSize){
+            System.out.print("ACK no encontrado");
         }
     }
     
