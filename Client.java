@@ -44,7 +44,7 @@ public class Client{
             while (!finishedFile || !allAck) {
                 var.listenForAck();
                 allAck = var.selectiveRepeat();
-                if (var.windowTime[0] == -1 && !finishedFile) {
+                if (var.windowTime[var.windowSize-1] == -1 && !finishedFile) {
                     finishedFile = var.newWindow();
                 }
             }
