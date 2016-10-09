@@ -136,6 +136,7 @@ public class Client{
         if (segmentCounter < file.length()) {
             for (int i = 0; i < windowSize-1; i++) {
                 windowTime[i] = windowTime[i + 1];
+                windowSegments[i] = windowSegments[i + 1];
             }
             windowSegments[0] = segmentCounter;
             windowTime[0] = 0;
