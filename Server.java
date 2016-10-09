@@ -6,10 +6,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.*;
  
 public class Server
 {
- 
+    private ArrayList<char> recivedMessage = new ArrayList<char>();
     private static Socket socket;
  
     public static void main(String[] args)
@@ -64,4 +65,5 @@ public class Server
         }
       
     }
+
 }
