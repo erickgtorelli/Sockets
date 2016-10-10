@@ -13,6 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.Socket;
 import java.net.InetAddress;
+import javax.swing.Box;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
     
 
 /**
@@ -25,8 +31,8 @@ public class Client{
     final int windowSize;          //Size of the window
     final String file;             //File content to transmit
     final int intermediaryPort;    //Number of the intermediary port
-    final boolean mode;            //0 normal, 1 debug
     final double timeout;          //Timeout time in s 
+    boolean mode;
     
     private static int segmentCounter;      //Counter of segments
     private static int[] windowSegments;    //segment to be sent
@@ -36,9 +42,13 @@ public class Client{
     
     public static void main(String args[]) throws IOException
     {
+        guiArguments();
+    }
+    
+    public static void startClient(int windowSize,String path,int intermediaryPort, double timeout, boolean mode){
         try
         {
-            Client var = new Client(10, "archivo.txt", 10, false, 1000);
+            Client var = new Client(windowSize, path, intermediaryPort, timeout, mode);
             boolean finishedFile = false;
             boolean allAck= false;
             while (!finishedFile || !allAck) {
@@ -55,15 +65,15 @@ public class Client{
             {
                 exception.printStackTrace();
             }
-
     }
-    public Client(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{
+    
+    public Client(int windowSize,String path,int intermediaryPort, double timeout, boolean mode) throws IOException{
         resend=0;
+        this.mode = mode;
         util = new Util();
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);
         this.intermediaryPort=intermediaryPort;
-        this.mode=mode;
         this.timeout=timeout;        
         segmentCounter=0; 
         windowTime = new double[windowSize];  
@@ -86,7 +96,9 @@ public class Client{
         if(!(p.getPackage().equals("test"))){
         System.out.println(p.getPackage());
         int segment = p.getPackageSec();
-        System.out.println("ACK: " + segment);
+        if(mode){
+            System.out.println("Recibiendo ACK para segmento: " + segment);
+        }
         boolean found = false;
         int var = 0;
         while(!found && var<windowSize){
@@ -146,7 +158,7 @@ public class Client{
             windowTime[0] = 0;
             segmentCounter++;
             finished = false;
-        }
+        }/*
         System.out.print("Nueva ventana: ");
         for(int i= 0; i<windowSize;i++){
             System.out.print(windowSegments[i]+" ");
@@ -155,7 +167,7 @@ public class Client{
         for(int i= 0; i<windowSize;i++){
             System.out.print(windowTime[i]+" ");
         }
-        System.out.println();
+        System.out.println();*/
         return finished;
     }
 
@@ -188,16 +200,69 @@ public class Client{
                     resend++;
                     util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
                     setTimeoutToSegment(x);//se reprograma/programa el timeout
-                    System.out.println("Renviando: " + windowSegments[x]);
+                    if(mode){
+                        System.out.println("Timeout venció. Reenviando: " + windowSegments[x]);
+                    }
                 }
                 if (windowTime[x]==0) {
                     util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));
                     setTimeoutToSegment(x);//se reprograma/programa el timeout
-                    System.out.println("Enviando: " + windowSegments[x]);
+                    if(mode){
+                        System.out.println("Enviando: " + windowSegments[x]);
+                    }
                 }
             }
         }
         return allAck;
     }
-    
+    /*
+    * Ask for the initial values of intermediary
+    * If everthing is ok run the StartIntermediary
+    */
+    private static void guiArguments(){
+        int windowSize;          //Size of the window
+        String file;             //File content to transmit
+        int intermediaryPort;    //Number of the intermediary port
+        double timeout;             //Timeout time in ms 
+        //enter fields
+        JTextField windowSizeTextField = new JTextField(5);
+        JTextField fileTextField = new JTextField(5);
+        JTextField intermediaryPortTextField = new JTextField(5);
+        JTextField timeoutTextField = new JTextField(5);
+        //panel initialization 
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("Window size:"));
+        myPanel.add(windowSizeTextField);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("File path:"));
+        myPanel.add(fileTextField);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Intermediary port:"));
+        myPanel.add(intermediaryPortTextField);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Timeout:"));
+        myPanel.add(timeoutTextField);
+        JCheckBox mode = new JCheckBox("Debug mode");
+        myPanel.add(mode);
+
+        //value Checking 
+        int result = JOptionPane.showConfirmDialog(null, myPanel,
+                "Please enter the initial values", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                windowSize = Integer.parseInt(windowSizeTextField.getText());
+                file = fileTextField.getText();
+                intermediaryPort = Integer.parseInt(intermediaryPortTextField.getText());
+                timeout = Integer.parseInt(timeoutTextField.getText());
+                //check for positive values
+                if (windowSize > 0 && intermediaryPort > 0 && timeout >= 0 && !"".equals(file)) { 
+                    startClient(windowSize,file,intermediaryPort,timeout,mode.isSelected());
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid initial values", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (java.lang.NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, "Invalid initial values", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } 
+    }
 }
