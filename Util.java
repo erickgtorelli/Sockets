@@ -27,7 +27,7 @@ public Package receivePackage(Socket source){
 	try
 	{
 	 	InputStream is = source.getInputStream();
-	    InputStreamReader isr = new InputStreamReader(is); hacvoy
+	    InputStreamReader isr = new InputStreamReader(is);
 	    BufferedReader br = new BufferedReader(isr);
 	    String message_from_source = br.readLine();
 	    received.setPackage(message_from_source);

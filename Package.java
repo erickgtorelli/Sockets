@@ -46,13 +46,14 @@ public class Package{
 		Matcher m = p.matcher(pack);
 		int ret = 0;
 		if (m.find()) {
+			System.out.println(m.group(0));
     		ret = Integer.parseInt(m.group(0));
     		
 		}
 		else{
 			System.out.println("NO MATCH");
 		}
-		this.sec = ret;
+		
 
 		return ret; 
 	} 
