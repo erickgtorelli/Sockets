@@ -13,6 +13,10 @@ import java.net.InetAddress;
 */
 public class Util{ 
 
+
+
+
+
 /*
 *
 * @param Sokect
@@ -23,10 +27,12 @@ public Package receivePackage(Socket source){
 	try
 	{
 	 	InputStream is = source.getInputStream();
-	    InputStreamReader isr = new InputStreamReader(is);
+	    InputStreamReader isr = new InputStreamReader(is); hacvoy
 	    BufferedReader br = new BufferedReader(isr);
 	    String message_from_source = br.readLine();
 	    received.setPackage(message_from_source);
+	    
+	    
     
     }
     catch (Exception exception)

@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"get",
+				"getPackageSec"
+			],
+			[
+				"window",
+				"windowSize-1"
+			],
+			[
+				"file",
+				"fileCompleted"
+			],
+			[
 				"rece",
 				"received"
 			],
@@ -140,28 +152,49 @@
 	"buffers":
 	[
 		{
+			"contents": "\n\n/*\n * To change this license header, choose License Headers in Project Properties.\n * To change this template file, choose Tools | Templates\n * and open the template in the editor.\n */\n\nimport java.io.IOException;\nimport java.nio.charset.Charset;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Paths;\nimport java.net.Socket;\nimport java.net.InetAddress;\n    \n\n/**\n *\n * @author DaniloJ\n */\npublic class Client{\n\n    private static Socket socket;\n    final int windowSize;          //Size of the window\n    final String file;             //File content to transmit\n    final int intermediaryPort;    //Number of the intermediary port\n    final boolean mode;            //0 normal, 1 debug\n    final double timeout;          //Timeout time in s \n    \n    private static int segmentCounter;      //Counter of segments\n    private static int[] windowSegments;    //segment to be sent\n    private static double[] windowTime;     //next timeout\n    private final Util util;\n    public int resend;\n    \n    public static void main(String args[]) throws IOException\n    {\n        try\n        {\n            Client var = new Client(10, \"archivo.txt\", 10, false, 1000);\n            boolean finishedFile = false;\n            boolean allAck= false;\n            while (!finishedFile || !allAck) {\n                var.listenForAck();\n                allAck = var.selectiveRepeat();\n                if (var.windowTime[var.windowSize-1] == -1 && !finishedFile) {\n                    finishedFile = var.newWindow();\n                }\n            }\n            var.finished();\n            System.out.println(\"Resent packages: \"+ var.resend);\n        }\n        catch (Exception exception)\n            {\n                exception.printStackTrace();\n            }\n\n    }\n    public Client(int windowSize,String path,int intermediaryPort, boolean mode, int timeout) throws IOException{\n        resend=0;\n        util = new Util();\n        this.windowSize=windowSize;     \n        this.file=readFile(path,StandardCharsets.UTF_8);\n        this.intermediaryPort=intermediaryPort;\n        this.mode=mode;\n        this.timeout=timeout;        \n        segmentCounter=0; \n        windowTime = new double[windowSize];  \n        windowSegments= new int[windowSize];\n        for(int i = 0; i<this.windowSize; i++){\n            windowTime[i] = 0;\n            windowSegments[i] = segmentCounter;\n            segmentCounter++;\n        }\n        int port = 25002;\n        String host = \"localhost\";\n        InetAddress address = InetAddress.getByName(host);\n        socket = new Socket(address, port);\n         util.sendPackage(socket, new Package(\"test\"));\n         Package p = util.receivePackage(socket);\n    }\n    \n    public void listenForAck(){\n\n        Package p = util.receivePackage(socket);\n        System.out.println(p.getPackageSec());\n        int segment = p.getPackageSec();\n        System.out.println(\"ACK: \" + segment);\n        boolean found = false;\n        int var = 0;\n        while(!found && var<windowSize){\n            if(segmentAt(var)==segment){\n                found = true;\n                setAck(var);\n            }\n            var++;\n        }\n        if(var>=windowSize){\n            System.out.print(\"ACK no encontrado\");\n        }\n    }\n    \n    public void finished(){\n        util.sendPackage(socket, new Package(-1,' '));\n        double time = System.currentTimeMillis()+timeout;\n        boolean received = false;\n        while(!received){\n            Package p = util.receivePackage(socket);\n            if (\" \".equals(p.getPackageContent())){\n                received = true;\n            }\n            if(time > System.currentTimeMillis()){\n                util.sendPackage(socket, new Package(-1,' '));\n            }\n        }\n    }\n    \n    public int segmentAt(int x){\n        return windowSegments[x];\n    }\n    \n    /* REQ: path of file, encoding of file\n    *  MOD: -\n    *  RET: String with all chars of file\n    */\n    public String readFile(String path, Charset encoding) throws IOException \n    {\n        byte[] encoded = Files.readAllBytes(Paths.get(path));\n        return new String(encoded, encoding);    //std enconding = StandardCharsets.UTF_8\n    }\n\n    /* REQ: -\n    *  MOD: Move window by one segment at once\n    *  RET: Boolean telling if all file has been set into window\n    */\n    public boolean newWindow() {\n        boolean finished = true;\n        if (segmentCounter < file.length()) {\n            for (int i = 0; i < windowSize-1; i++) {\n                windowTime[i] = windowTime[i + 1];\n                windowSegments[i] = windowSegments[i + 1];\n            }\n            windowSegments[0] = segmentCounter;\n            windowTime[0] = 0;\n            segmentCounter++;\n            finished = false;\n        }\n        /*System.out.print(\"Nueva ventana: \");\n        for(int i= 0; i<windowSize;i++){\n            System.out.print(windowSegments[i]+\" \");\n        }\n        System.out.print(\"Ventana tiempo: \");\n        for(int i= 0; i<windowSize;i++){\n            System.out.print(windowTime[i]+\" \");\n        }\n        System.out.println();*/\n        return finished;\n    }\n\n    /* REQ: Positive integer between 0 and windowSize\n    *  MOD: Timeout of segment passed by parameter\n    *  RET: -\n    */\n    public void setTimeoutToSegment(int seg){\n        windowTime[seg]=System.currentTimeMillis()+timeout;\n    }\n\n    /* REQ: Positive integer between 0 and windowSize\n    *  MOD: Set the ack of the segment passed by parameter\n    *  RET: -\n    */\n    public void setAck(int seg){\n        windowTime[seg]=-1;\n    }\n\n    /* REQ: -\n    *  MOD: Sent all pending segments of the window, set their timeout out and resend expired segments with a new timeout\n    *  RET: \n    */\n    public boolean selectiveRepeat() {\n        boolean allAck = true;\n        for (int x = 0; x < windowSize; x++) {\n            if (windowTime[x] != -1) {\n                allAck = false;\n                if (windowTime[x] > System.currentTimeMillis()){\n                    resend++;\n                    util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));\n                    setTimeoutToSegment(x);//se reprograma/programa el timeout\n                    System.out.println(\"Renviando: \" + windowSegments[x]);\n                }\n                if (windowTime[x]==0) {\n                    util.sendPackage(socket, new Package(windowSegments[x],file.charAt(windowSegments[x])));\n                    setTimeoutToSegment(x);//se reprograma/programa el timeout\n                    System.out.println(\"Enviando: \" + windowSegments[x]);\n                }\n            }\n        }\n        return allAck;\n    }\n    \n}",
 			"file": "Client.java",
+			"file_size": 6684,
+			"file_write_time": 131205343881866079,
 			"settings":
 			{
-				"buffer_size": 6411,
+				"buffer_size": 6684,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "archivo.txt",
+			"contents": "FUNCIONO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+			"file": "/home/erick/Desktop/Dropbox/U/Redes/Programadas/Sockets/archivo.txt",
+			"file_size": 38,
+			"file_write_time": 131205313704864640,
 			"settings":
 			{
-				"buffer_size": 11,
+				"buffer_size": 38,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "Intermediary.java",
+			"contents": "# Sockets\nNetwork Client-Intermediary-Server with Selective Repeat\n\n# Run program commands \n\n```\n \tCommand line\n    $ javac Server.java Client.java Intermediary.java\t\n    $ java Server \n    $ java Intermediary\n    $ java Client\n```\n\n\n# Close Open Sockets\n\nStep 1: sudo netstat -ap | grep :< port_number >\n\nStep 2: kill  < pid > \n\t\tOR \n\t\tkill -9 < pid >\n",
+			"file": "README.md",
+			"file_size": 353,
+			"file_write_time": 131205311663624542,
 			"settings":
 			{
-				"buffer_size": 8143,
+				"buffer_size": 353,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "import java.io.BufferedReader;\nimport java.io.BufferedWriter;\nimport java.io.InputStream;\nimport java.io.InputStreamReader;\nimport java.io.OutputStream;\nimport java.io.OutputStreamWriter;\nimport java.net.ServerSocket;\nimport java.net.Socket;\nimport java.net.InetAddress;\nimport javax.swing.Box;\nimport javax.swing.JCheckBox;\nimport javax.swing.JLabel;\nimport javax.swing.JOptionPane;\nimport javax.swing.JPanel;\nimport javax.swing.JTextField;\nimport java.lang.Math;\n\n/*\n* This is a multi-thread class\n* One thread will handle the packages from the client to the server.\n* The second one will handle the packages from the server to the client\n*\n*/\npublic class Intermediary implements Runnable{\n    private Thread t;\n    private String threadName;\n\t  private static Socket socket_with_client;\n \t  private static Socket socket_with_server;\n    private ServerSocket intermediarySocket;\n    Util tools = new Util();\n    String message_from_client;\n    String message_received;\n    private int probabilityP;\n    private boolean debug;\n    BufferedReader br = null;\n\n\n    Intermediary(String name, int portServer,int portClient,int probabilityP,boolean debug)\n    {\n        threadName = name;\n        this.debug = debug;\n        this.probabilityP = probabilityP;\n        System.out.println(\"Creating \" +  threadName);\n        //Only the thread called FromServer will start the ports and the variables\n        if(threadName==\"FromServer\"){\n          \n          try\n          {\n              //Server_intermediary Init\n              int port_intermediary = portClient;\n              intermediarySocket = new ServerSocket(port_intermediary);\n              System.out.println(\"Intermediary Started and listening to the port \" + port_intermediary);\n             //Listening the Server\n              String host = \"localhost\";\n              int port_server = portServer;\n              InetAddress address = InetAddress.getByName(host);\n              socket_with_server = new Socket(address, port_server);\n              //Socket with client\n              socket_with_client = intermediarySocket.accept();\n          }\n          catch (Exception exception)\n          {\n              exception.printStackTrace();\n          }\n        }\n    }  \n    //main flow of the intermediary class \n    @Override\n    public void run(){\n        try\n        {\n         if(threadName == \"FromClient\")\n         {  \n            while(true)\n            {\n                     //Receiving message from client\n                     Package received = tools.receivePackage(socket_with_client);\n                     message_from_client = received.getPackage();\n                     if(message_from_client != null){\n                     System.out.println(\"Message received from client is \"+ message_from_client);\n                     \n                     //Send the message to the server\n                     //IF DEBUG MODE \n                     if(debug){\n                        boolean result = askPackageDebug(received.getPackage());\n                        if (result) {\n                         System.out.println(\"Sending Package!\");\n                         tools.sendPackage(socket_with_server,received); \n                        }\n                     }\n                     // !DEBUG\n                     else{\n                      \n                       int random = (int )(Math.random() * 100 + 1);\n                       //Lost of packages simulation with the probablityP \n                       if(random > probabilityP){\n                         tools.sendPackage(socket_with_server,received);\n                       }\n                       else{\n                        System.out.println(\"Package Lost!\");\n                       }\n                      }\n                    }\n            }\n         }\n         else if(threadName==\"FromServer\"){\n            while(true)\n            {\n                \n                    //Get the return message from the server\n                    Package received = tools.receivePackage(socket_with_server);\n                    String message_from_server = received.getPackage();\n                    System.out.println(\"Message received from the server : \" + message_from_server);\n                    //Sending the answer from the server back to the client\n                    tools.sendPackage(socket_with_client,received);              \n            }\n        }\n        }\n        catch (Exception exception)\n        {\n            exception.printStackTrace();\n        }\n        finally\n        {\n            //Closing the socket\n            try\n            {\n                socket_with_client.close();\n                socket_with_server.close();\n            }\n            catch(Exception e)\n            {\n                e.printStackTrace();\n            }\n        }\n    }  \n\n    public void start () {\n       System.out.println(\"Starting \" +  threadName );\n       if (t == null) {\n          t = new Thread (this, threadName);\n          t.start ();\n       }\n    }\n\n    private boolean askPackageDebug(String pack){\n      JPanel panel = new JPanel();\n      JCheckBox mode = new JCheckBox(\"Send the Package\");\n      panel.add(mode);\n      int result = JOptionPane.showConfirmDialog(null, panel,\n                pack, JOptionPane.OK_CANCEL_OPTION);\n\n      if (result == JOptionPane.OK_OPTION){\n        return mode.isSelected();\n      }\n\n      return false;\n\n    }\n    /*\n    * Ask for the initial values of intermediary\n    * If everthing is ok run the StartIntermediary\n    */\n    private static void guiArguments(){\n       //arguments\n        int portClient, portServer, probabilityP;\n        //enter fields\n        JTextField clientPort = new JTextField(5);\n        JTextField serverPort = new JTextField(5);\n        JTextField probability = new JTextField(5);\n        //panel initialization \n        JPanel myPanel = new JPanel();\n        myPanel.add(new JLabel(\"Client Port:\"));\n        myPanel.add(clientPort);\n        myPanel.add(Box.createHorizontalStrut(15)); // a spacer\n        myPanel.add(new JLabel(\"Server Port:\"));\n        myPanel.add(serverPort);\n        myPanel.add(Box.createHorizontalStrut(15)); // a spacer\n        myPanel.add(new JLabel(\"Packages lost rate %:\"));\n        myPanel.add(probability);\n        JCheckBox mode = new JCheckBox(\"Slow execution\");\n        myPanel.add(mode);\n  \n\n        //value Checking \n        int result = JOptionPane.showConfirmDialog(null, myPanel,\n                \"Please enter the initial values\", JOptionPane.OK_CANCEL_OPTION);\n        if (result == JOptionPane.OK_OPTION) {\n            try {\n                portClient = Integer.parseInt(clientPort.getText());\n                portServer = Integer.parseInt(serverPort.getText());\n                probabilityP = Integer.parseInt(probability.getText());\n                //check for positive values\n                if (portClient > 0 && portServer > 0 && probabilityP >= 0) { \n                   if(!(portServer == portClient)){\n                    \n                      startIntermediary(portClient,portServer,probabilityP,mode.isSelected());\n                   }\n                   else{\n                    JOptionPane.showMessageDialog(null, \"The ports for Server and Client must be different\", \"Error\", JOptionPane.ERROR_MESSAGE);\n                   }\n                } else {\n                    JOptionPane.showMessageDialog(null, \"Invalid initial values\", \"Error\", JOptionPane.ERROR_MESSAGE);\n                }\n            } catch (java.lang.NumberFormatException e) {\n                    JOptionPane.showMessageDialog(null, \"Invalid initial values\", \"Error\", JOptionPane.ERROR_MESSAGE);\n            }\n        } \n    }\n    //Start the intermediary class\n    private static void  startIntermediary(int portClient,int portServer,int probabilityP,boolean debug)\n    {\n      Intermediary fromServer = new Intermediary(\"FromServer\",portServer,portClient,probabilityP,debug);\n      Intermediary fromClient = new Intermediary(\"FromClient\",portServer,portClient,probabilityP,debug);\n\n      fromServer.start();\n      fromClient.start();\n    }\n    public static void main(String args[])\n    {\n      guiArguments();\n    \n    }\n\n}\n",
+			"file": "/home/erick/Desktop/Dropbox/U/Redes/Programadas/Sockets/Intermediary.java",
+			"file_size": 8144,
+			"file_write_time": 131205313728144641,
+			"settings":
+			{
+				"buffer_size": 8144,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -170,7 +203,7 @@
 			"file": "Util.java",
 			"settings":
 			{
-				"buffer_size": 1504,
+				"buffer_size": 1500,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -179,16 +212,19 @@
 			"file": "Package.java",
 			"settings":
 			{
-				"buffer_size": 991,
+				"buffer_size": 983,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
+			"contents": "import java.io.BufferedReader;\nimport java.io.BufferedWriter;\nimport java.io.InputStream;\nimport java.io.InputStreamReader;\nimport java.io.OutputStream;\nimport java.io.OutputStreamWriter;\nimport java.net.ServerSocket;\nimport java.net.Socket;\nimport java.util.*;\nimport java.io.*;\n \npublic class Server\n{\n    private ArrayList<Character> receivedMessage = new ArrayList<Character>();\n    private static Socket socket;\n    \n    public boolean fileCompleted = false;\n\n    public static void main(String[] args)\n    {\n        Server server = new Server();\n        Util tools = new Util();\n        try\n        {\n \n            int port = 25001;\n            ServerSocket serverSocket = new ServerSocket(port);\n            System.out.println(\"Server Started and listening to the port \" + port);\n            socket = serverSocket.accept();\n            //Server is running always. This is done using this while(true) loop\n            while(!server.fileCompleted)\n            {\n\n                //Reading the message from the client\n                \n                Package received = tools.receivePackage(socket);\n                //fileCompleted ? \n                if(received.getPackageSec() == -1){\n                    server.fileCompleted = true;\n                }\n                //file don't compleated, continue\n                else{\n                    //transfer the received content to the ArrayList\n                    server.receivedMessage.add(received.getPackageSec(),received.getPackageContent());\n                    //Returning Message                \n                    //Sending the response back to the client.\n                    tools.sendPackage(socket,received);\n                }\n            }\n            //server.writeIntoFile(server.receivedMessage);\n        }\n        catch (Exception e)\n        {\n            e.printStackTrace();\n        }\n        finally\n        {\n            //Closing the socket\n            try\n            {\n                socket.close();\n            }\n            catch(Exception e)\n            {\n                e.printStackTrace();\n            }\n        }\n      \n    }\n\n    public void writeIntoFile(ArrayList<Character> list)throws FileNotFoundException{\n        StringBuilder builder = new StringBuilder(list.size());\n        for(Character ch: list)\n        {\n            builder.append(ch);\n        }\n        try(  PrintWriter out = new PrintWriter( \"filename.txt\" )  ){\n            out.println( builder.toString()); \n        }\n    }\n}\n\n\n",
 			"file": "Server.java",
+			"file_size": 2486,
+			"file_write_time": 131205313771024643,
 			"settings":
 			{
-				"buffer_size": 2473,
+				"buffer_size": 2486,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -222,9 +258,13 @@
 	"command_palette":
 	{
 		"height": 354.0,
-		"last_filter": "pa",
+		"last_filter": "Package Control: ",
 		"selected_items":
 		[
+			[
+				"Package Control: ",
+				"Package Control: List Packages"
+			],
 			[
 				"pa",
 				"Package Control: Install Package"
@@ -294,7 +334,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 431.0
+		"width": 503.0
 	},
 	"console":
 	{
@@ -321,12 +361,13 @@
 	],
 	"file_history":
 	[
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/archivo.txt",
+		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Intermediary.java",
 		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Package.java",
 		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/Respuesta.html",
 		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/ClienteLab7.java",
 		"/home/erick/Desktop/Dropbox/U/Redes/Lab/lab 7/Respuesta Viterbi.html",
 		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Server.java",
-		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Intermediary.java",
 		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Util.java",
 		"/home/erick/Dropbox/U/Redes/Programadas/Sockets/Client.java",
 		"/home/erick/Dropbox/U/Redes/Programadas/Tarea 1/.gitignore",
@@ -381,7 +422,7 @@
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 70.0
 	},
 	"find_in_files":
 	{
@@ -395,6 +436,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"segmentAt",
+			"windowTime",
+			"util",
 			"FileNotFoundException",
 			"recived",
 			"recivedMessage",
@@ -428,7 +472,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -437,15 +481,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6411,
+						"buffer_size": 6684,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2994,
-								2994
+								2819,
+								2819
 							]
 						],
 						"settings":
@@ -457,8 +501,8 @@
 								{
 									"1":
 									[
-										3034,
-										3035
+										3276,
+										3277
 									]
 								},
 								"icon":
@@ -473,8 +517,8 @@
 								{
 									"1":
 									[
-										2325,
-										2326
+										2759,
+										2760
 									]
 								},
 								"unmatched":
@@ -483,88 +527,88 @@
 							},
 							"bracket_highlighter.regions":
 							[
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
 								"bh_single_quote",
 								"bh_single_quote_center",
 								"bh_single_quote_open",
 								"bh_single_quote_close",
 								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_default",
 								"bh_default_center",
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
 								"bh_regex",
 								"bh_regex_center",
 								"bh_regex_open",
 								"bh_regex_close",
 								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
-								"bh_round_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content"
+								"bh_round_content"
 							],
 							"syntax": "Packages/Java/Java.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2890.0,
+						"translation.y": 1228.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "archivo.txt",
+					"file": "/home/erick/Desktop/Dropbox/U/Redes/Programadas/Sockets/archivo.txt",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 11,
+						"buffer_size": 38,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11,
-								11
+								38,
+								38
 							]
 						],
 						"settings":
@@ -587,61 +631,61 @@
 							},
 							"bracket_highlighter.regions":
 							[
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
 								"bh_single_quote",
 								"bh_single_quote_center",
 								"bh_single_quote_open",
 								"bh_single_quote_close",
 								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_default",
 								"bh_default_center",
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
 								"bh_regex",
 								"bh_regex_center",
 								"bh_regex_open",
 								"bh_regex_close",
 								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
-								"bh_round_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content"
+								"bh_round_content"
 							],
 							"syntax": "Packages/MarkdownEditing/Markdown.tmLanguage"
 						},
@@ -649,24 +693,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "Intermediary.java",
+					"file": "README.md",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8143,
+						"buffer_size": 353,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1991,
-								1991
+								305,
+								305
 							]
 						],
 						"settings":
@@ -676,27 +720,12 @@
 							{
 								"close":
 								{
-									"1":
-									[
-										2101,
-										2102
-									]
 								},
 								"icon":
 								{
-									"1":
-									[
-										"Packages/BracketHighlighter/icons/curly_bracket.png",
-										"brackethighlighter.default"
-									]
 								},
 								"open":
 								{
-									"1":
-									[
-										1467,
-										1468
-									]
 								},
 								"unmatched":
 								{
@@ -704,205 +733,86 @@
 							},
 							"bracket_highlighter.regions":
 							[
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
 								"bh_single_quote",
 								"bh_single_quote_center",
 								"bh_single_quote_open",
 								"bh_single_quote_close",
 								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_default",
 								"bh_default_center",
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
 								"bh_regex",
 								"bh_regex_center",
 								"bh_regex_open",
 								"bh_regex_close",
 								"bh_regex_content",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_round_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content"
-							],
-							"syntax": "Packages/Java/Java.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 663.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "Util.java",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1504,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1372,
-								1372
-							]
-						],
-						"settings":
-						{
-							"bracket_highlighter.busy": false,
-							"bracket_highlighter.locations":
-							{
-								"close":
-								{
-									"1":
-									[
-										1410,
-										1411
-									]
-								},
-								"icon":
-								{
-									"1":
-									[
-										"Packages/BracketHighlighter/icons/curly_bracket.png",
-										"brackethighlighter.default"
-									]
-								},
-								"open":
-								{
-									"1":
-									[
-										1009,
-										1010
-									]
-								},
-								"unmatched":
-								{
-								}
-							},
-							"bracket_highlighter.regions":
-							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
 								"bh_curly",
 								"bh_curly_center",
 								"bh_curly_open",
 								"bh_curly_close",
 								"bh_curly_content",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close",
-								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_default_content",
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_regex_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
-								"bh_round_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content"
+								"bh_round_content"
 							],
-							"syntax": "Packages/Java/Java.sublime-syntax"
+							"syntax": "Packages/MarkdownEditing/Markdown.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 510.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "Package.java",
+					"buffer": 3,
+					"file": "/home/erick/Desktop/Dropbox/U/Redes/Programadas/Sockets/Intermediary.java",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 991,
+						"buffer_size": 8144,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								782,
-								782
+								3783,
+								3783
 							]
 						],
 						"settings":
@@ -914,8 +824,8 @@
 								{
 									"1":
 									[
-										990,
-										991
+										3782,
+										3783
 									]
 								},
 								"icon":
@@ -930,8 +840,8 @@
 								{
 									"1":
 									[
-										351,
-										352
+										2377,
+										2378
 									]
 								},
 								"unmatched":
@@ -940,87 +850,88 @@
 							},
 							"bracket_highlighter.regions":
 							[
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
 								"bh_single_quote",
 								"bh_single_quote_center",
 								"bh_single_quote_open",
 								"bh_single_quote_close",
 								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_default",
 								"bh_default_center",
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
 								"bh_regex",
 								"bh_regex_center",
 								"bh_regex_open",
 								"bh_regex_close",
 								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
-								"bh_round_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content"
+								"bh_round_content"
 							],
 							"syntax": "Packages/Java/Java.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 204.0,
+						"translation.y": 1658.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "Server.java",
+					"buffer": 4,
+					"file": "Util.java",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2473,
+						"buffer_size": 1500,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								278,
-								278
+								1001,
+								1001
 							]
 						],
 						"settings":
@@ -1030,12 +941,27 @@
 							{
 								"close":
 								{
+									"1":
+									[
+										1006,
+										1007
+									]
 								},
 								"icon":
 								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/round_bracket.png",
+										"brackethighlighter.default"
+									]
 								},
 								"open":
 								{
+									"1":
+									[
+										971,
+										972
+									]
 								},
 								"unmatched":
 								{
@@ -1043,68 +969,303 @@
 							},
 							"bracket_highlighter.regions":
 							[
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
 								"bh_single_quote",
 								"bh_single_quote_center",
 								"bh_single_quote_open",
 								"bh_single_quote_close",
 								"bh_single_quote_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_default",
 								"bh_default_center",
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
 								"bh_regex",
 								"bh_regex_center",
 								"bh_regex_open",
 								"bh_regex_close",
 								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
-								"bh_round_content",
+								"bh_round_content"
+							],
+							"syntax": "Packages/Java/Java.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "Package.java",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 983,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								750,
+								750
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+									"1":
+									[
+										752,
+										753
+									]
+								},
+								"icon":
+								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/curly_bracket.png",
+										"brackethighlighter.default"
+									]
+								},
+								"open":
+								{
+									"1":
+									[
+										729,
+										730
+									]
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
 								"bh_angle",
 								"bh_angle_center",
 								"bh_angle_open",
 								"bh_angle_close",
-								"bh_angle_content"
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content"
+							],
+							"syntax": "Packages/Java/Java.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 306.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "Server.java",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2486,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								966,
+								966
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+									"1":
+									[
+										1707,
+										1708
+									]
+								},
+								"icon":
+								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/curly_bracket.png",
+										"brackethighlighter.default"
+									]
+								},
+								"open":
+								{
+									"1":
+									[
+										965,
+										966
+									]
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content"
 							],
 							"syntax": "Packages/Java/Java.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 918.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,

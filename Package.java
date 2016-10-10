@@ -1,3 +1,5 @@
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /*
 * Elemental concept of the packages on the projet
 * 
@@ -13,6 +15,7 @@ public class Package{
 	private String pack;
 	private char content; 
 	int sec; 
+	Pattern p = Pattern.compile("(-?[0-9]+)");
 	/*
 	* basic constructor class
 	* @param sec number of the package
@@ -34,13 +37,27 @@ public class Package{
 	}
 
 	public char getPackageContent(){
-		//return pack.substring(3,4);
-		return this.content;
+		return pack.charAt((pack.length() - 1));
+		//return this.content;
 	}
 
 	public int getPackageSec(){
 		//return pack.substring(1,2);
-		return this.sec; 
+		Matcher m = p.matcher(pack);
+		int ret = 0;
+		if (m.find()) {
+    		ret = Integer.parseInt(m.group(0));
+    		
+		}
+		else{
+			System.out.println("NO MATCH");
+		}
+		this.sec = ret;
+
+		return ret; 
 	} 
+	public void setSec(int sec){
+		this.sec = sec; 
+	}
 
 }
