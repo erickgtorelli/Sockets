@@ -33,7 +33,7 @@ public Package receivePackage(Socket source){
     {
         exception.printStackTrace();
     }
-    //System.out.println("Message received");
+    System.out.println("Message received");
     return received;
 }
 
@@ -52,7 +52,7 @@ public void sendPackage(Socket destination,Package sending){
         exception.printStackTrace();
     }
 
-    //System.out.println("Message sent");
+    System.out.println("Message sent");
  
 }
 

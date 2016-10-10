@@ -82,7 +82,7 @@ public class Intermediary implements Runnable{
                      //Send the message to the server
                      //IF DEBUG MODE 
                      if(debug){
-                        boolean result = askPackageDebug();
+                        boolean result = askPackageDebug(received.getPackage());
                         if (result) {
                          System.out.println("Sending Package!");
                          tools.sendPackage(socket_with_server,received); 
@@ -143,12 +143,12 @@ public class Intermediary implements Runnable{
        }
     }
 
-    private boolean askPackageDebug(){
+    private boolean askPackageDebug(String pack){
       JPanel panel = new JPanel();
       JCheckBox mode = new JCheckBox("Send the Package");
       panel.add(mode);
       int result = JOptionPane.showConfirmDialog(null, panel,
-                "Do you want to send this package?", JOptionPane.OK_CANCEL_OPTION);
+                pack, JOptionPane.OK_CANCEL_OPTION);
 
       if (result == JOptionPane.OK_OPTION){
         return mode.isSelected();

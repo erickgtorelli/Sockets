@@ -14,8 +14,8 @@ Network Client-Intermediary-Server with Selective Repeat
 
 # Close Open Sockets
 
-Step 1: sudo netstat -ap | grep :<port_number>
+Step 1: sudo netstat -ap | grep :< port_number >
 
-Step 2: kill  <pid> 
+Step 2: kill  < pid > 
 		OR 
-		kill -9 <pid>
+		kill -9 < pid >

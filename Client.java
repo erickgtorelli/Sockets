@@ -77,6 +77,7 @@ public class Client{
         String host = "localhost";
         InetAddress address = InetAddress.getByName(host);
         socket = new Socket(address, port);
+         util.sendPackage(socket, new Package("test"));
     }
     
     public void listenForAck(){
@@ -134,11 +135,10 @@ public class Client{
         boolean finished = true;
         if (segmentCounter < file.length()) {
             for (int i = 0; i < windowSize-1; i++) {
-                windowSegments[i] = windowSegments[i + 1];
                 windowTime[i] = windowTime[i + 1];
             }
-            windowSegments[windowSize-1] = segmentCounter;
-            windowTime[windowSize-1] = 0;
+            windowSegments[0] = segmentCounter;
+            windowTime[0] = 0;
             segmentCounter++;
             finished = false;
         }
