@@ -77,6 +77,7 @@ public class Client{
         String host = "localhost";
         InetAddress address = InetAddress.getByName(host);
         socket = new Socket(address, port);
+        socket.setSoTimeout(3*1000);
         util.sendPackage(socket, new Package("test"));
     }
     

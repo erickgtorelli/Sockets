@@ -55,6 +55,7 @@ public class Intermediary implements Runnable{
               int port_server = portServer;
               InetAddress address = InetAddress.getByName(host);
               socket_with_server = new Socket(address, port_server);
+              socket_with_server.setSoTimeout(3*1000);
               //Socket with client
               socket_with_client = intermediarySocket.accept();
           }
