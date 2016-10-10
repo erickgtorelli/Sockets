@@ -77,11 +77,12 @@ public class Client{
         String host = "localhost";
         InetAddress address = InetAddress.getByName(host);
         socket = new Socket(address, port);
-         util.sendPackage(socket, new Package("test"));
+        util.sendPackage(socket, new Package("test"));
     }
     
     public void listenForAck(){
         Package p = util.receivePackage(socket);
+        if(!(p.getPackage().equals("test"))){
         System.out.println(p.getPackage());
         int segment = p.getPackageSec();
         System.out.println("ACK: " + segment);
@@ -96,6 +97,7 @@ public class Client{
         }
         if(var>=windowSize){
             System.out.print("ACK no encontrado");
+        }
         }
     }
     
@@ -144,7 +146,7 @@ public class Client{
             segmentCounter++;
             finished = false;
         }
-        /*System.out.print("Nueva ventana: ");
+        System.out.print("Nueva ventana: ");
         for(int i= 0; i<windowSize;i++){
             System.out.print(windowSegments[i]+" ");
         }
@@ -152,7 +154,7 @@ public class Client{
         for(int i= 0; i<windowSize;i++){
             System.out.print(windowTime[i]+" ");
         }
-        System.out.println();*/
+        System.out.println();
         return finished;
     }
 

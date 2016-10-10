@@ -11,11 +11,15 @@ import java.io.*;
  
 public class Server
 {
-    private ArrayList<Character> receivedMessage = new ArrayList<Character>();
+    private ArrayList<Character> receivedMessage = new ArrayList<Character>(1000);
     private static Socket socket;
     
     public boolean fileCompleted = false;
-
+    public Server(){
+        for(int i = 0;i<1000;i++){
+            receivedMessage.add(i,' ');
+        }
+    }
     public static void main(String[] args)
     {
         Server server = new Server();
@@ -41,13 +45,15 @@ public class Server
                 //file don't compleated, continue
                 else{
                     //transfer the received content to the ArrayList
+                    System.out.println(received.getPackageContent());
+                    System.out.println(received.getPackageSec());
                     server.receivedMessage.add(received.getPackageSec(),received.getPackageContent());
                     //Returning Message                
                     //Sending the response back to the client.
                     tools.sendPackage(socket,received);
                 }
             }
-            //server.writeIntoFile(server.receivedMessage);
+            server.writeIntoFile(server.receivedMessage);
         }
         catch (Exception e)
         {
