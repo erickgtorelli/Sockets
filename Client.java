@@ -94,7 +94,7 @@ public class Client{
     public void listenForAck(){
         Package p = util.receivePackage(socket);
         if(!(p.getPackage().equals("test"))){
-        System.out.println(p.getPackage());
+        
         int segment = p.getPackageSec();
         System.out.println("ACK del segmento: "+segment);
         System.out.print("Ventana: ");
@@ -103,7 +103,9 @@ public class Client{
         }
         System.out.println();
         if(mode){
+            System.out.println("Listen for ACK" + p.getPackage());
             System.out.println("Recibiendo ACK para segmento: " + segment);
+
         }
         boolean found = false;
         int var = 0;

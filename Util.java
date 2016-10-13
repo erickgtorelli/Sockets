@@ -37,7 +37,7 @@ public Package receivePackage(Socket source){
     }
     catch (Exception exception)
     {
-        exception.printStackTrace();
+        System.out.println("Socket Timeout receiving");
     }
     System.out.println("Message received");
     return received;
