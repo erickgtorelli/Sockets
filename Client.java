@@ -96,6 +96,12 @@ public class Client{
         if(!(p.getPackage().equals("test"))){
         System.out.println(p.getPackage());
         int segment = p.getPackageSec();
+        System.out.println("ACK del segmento: "+segment);
+        System.out.print("Ventana: ");
+        for (int x = 0; x < windowSize; x++) {
+            System.out.print(windowSegments[x]+" ");
+        }
+        System.out.println();
         if(mode){
             System.out.println("Recibiendo ACK para segmento: " + segment);
         }
