@@ -98,6 +98,7 @@ public class Intermediary implements Runnable{
                          tools.sendPackage(socket_with_server,received);
                        }
                        else{
+                        tools.sendPackage(socket_with_server,new Package("empty"));
                         System.out.println("Package Lost!");
                        }
                       }

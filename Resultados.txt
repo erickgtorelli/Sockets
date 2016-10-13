@@ -1,0 +1,6 @@
+Impacto de la probabilidad de pérdida de paquetes sobre el tiempo de envío: Se graficarán los tiempos tomando $p = {10,20,30,40,50,60,70,80,90}$, un \emph{timeout} de 2000ms y un tamaño de ventana de 50 sobre un archivo de tamaño de 100 caracteres, 1050 caracteres y 2000 caracteres.
+
+10-
+20-
+30-
+40-
