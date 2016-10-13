@@ -54,17 +54,17 @@ public class Server
                     server.fileCompleted = true;
                 }
                 //file don't compleated, continue
-                else{
                     //transfer the received content to the ArrayList
-                    if(mode){
-                        System.out.print("Contenido del paquete recibido: "+received.getPackageContent());
-                        System.out.print("Enviando ACK del segmento: "+received.getPackageSec());
-                    }
-                    server.receivedMessage.add(received.getPackageSec(),received.getPackageContent());
-                    //Returning Message                
-                    //Sending the response back to the client.
-                    tools.sendPackage(socket,received);
+                if(mode){
+                    System.out.print("Contenido del paquete recibido: "+received.getPackageContent());
+                    System.out.print("Enviando ACK del segmento: "+received.getPackageSec());
                 }
+                if(received.getPackageSec() != -1){
+                    server.receivedMessage.set(received.getPackageSec(),received.getPackageContent());
+                }
+                //Returning Message                
+                //Sending the response back to the client.
+                tools.sendPackage(socket,received);
             }
             server.writeIntoFile(server.receivedMessage);
         }

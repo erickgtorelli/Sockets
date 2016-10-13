@@ -37,9 +37,9 @@ public Package receivePackage(Socket source){
     }
     catch (Exception exception)
     {
-        System.out.println("Socket Timeout receiving");
+        //System.out.println("Socket Timeout receiving");
     }
-    System.out.println("Message received");
+    //System.out.println("Message received");
     return received;
 }
 
@@ -58,14 +58,14 @@ public void sendPackage(Socket destination,Package sending){
         exception.printStackTrace();
     }
 
-    System.out.println("Message sent");
+    //System.out.println("Message sent");
  
 }
 
 
  public static void main(String args[])
     {
-    	System.out.println("test");
+    	//System.out.println("test");
     }
 
 

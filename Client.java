@@ -54,7 +54,7 @@ public class Client{
             while (!finishedFile || !allAck) {
                 var.listenForAck();
                 allAck = var.selectiveRepeat();
-                if (var.windowTime[var.windowSize-1] == -1 && !finishedFile) {
+                if (var.windowTime[0] == -1 && !finishedFile) {
                     finishedFile = var.newWindow();
                 }
             }
@@ -96,16 +96,12 @@ public class Client{
         if(!(p.getPackage().equals("test"))){
         
         int segment = p.getPackageSec();
-        System.out.println("ACK del segmento: "+segment);
-        System.out.print("Ventana: ");
-        for (int x = 0; x < windowSize; x++) {
-            System.out.print(windowSegments[x]+" ");
-        }
-        System.out.println();
         if(mode){
-            System.out.println("Listen for ACK" + p.getPackage());
             System.out.println("Recibiendo ACK para segmento: " + segment);
-
+            for (int x = 0; x < windowSize; x++) {
+                System.out.print(windowSegments[x]+" ");
+            }
+            System.out.println();
         }
         boolean found = false;
         int var = 0;
@@ -116,7 +112,7 @@ public class Client{
             }
             var++;
         }
-        if(var>=windowSize){
+        if(var>=windowSize && mode){
             System.out.print("ACK no encontrado");
         }
         }
@@ -128,7 +124,8 @@ public class Client{
         boolean received = false;
         while(!received){
             Package p = util.receivePackage(socket);
-            if (" ".equals(p.getPackageContent())){
+            System.out.println("Paquete feo: "+p.getPackage());
+            if (p.getPackageSec()==-1){
                 received = true;
             }
             if(time > System.currentTimeMillis()){
@@ -159,11 +156,11 @@ public class Client{
         boolean finished = true;
         if (segmentCounter < file.length()) {
             for (int i = 0; i < windowSize-1; i++) {
-                windowTime[i] = windowTime[i + 1];
-                windowSegments[i] = windowSegments[i + 1];
+                windowTime[i] = windowTime[i+1];
+                windowSegments[i] = windowSegments[i+1];
             }
-            windowSegments[0] = segmentCounter;
-            windowTime[0] = 0;
+            windowSegments[windowSize-1] = segmentCounter;
+            windowTime[windowSize-1] = 0;
             segmentCounter++;
             finished = false;
         }/*
