@@ -50,9 +50,7 @@ public class Package{
     		ret = Integer.parseInt(m.group(0));
     		
 		}
-		else{
-			System.out.println("NO MATCH");
-		}
+		
 		
 
 		return ret; 

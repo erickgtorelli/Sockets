@@ -124,7 +124,7 @@ public class Client{
         boolean received = false;
         while(!received){
             Package p = util.receivePackage(socket);
-            System.out.println("Paquete feo: "+p.getPackage());
+            
             if (p.getPackageSec()==-1){
                 received = true;
             }
