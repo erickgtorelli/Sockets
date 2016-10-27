@@ -74,7 +74,7 @@ public class Client{
         this.windowSize=windowSize;     
         this.file=readFile(path,StandardCharsets.UTF_8);
         this.intermediaryPort=intermediaryPort;
-        this.timeout=timeout;        
+        this.timeout=timeout;      
         segmentCounter=0; 
         windowTime = new double[windowSize];  
         windowSegments= new int[windowSize];
